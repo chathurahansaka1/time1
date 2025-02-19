@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>පාසල් සීනු පාලන පද්ධතිය</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome for icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <!-- Animate.css for animations -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0ff;
+      --secondary: #ff00ff;
+      --dark-bg: #121212;
+      --darker-bg: #0a0a0a;
+      --card-bg: #1e1e1e;
+      --text: #e0e0e0;
+      --highlight: #00ffaa;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--dark-bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle at 15% 50%, rgba(0, 255, 255, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 30%, rgba(255, 0, 255, 0.08) 0%, transparent 40%);
+    }
+    
+    .header-container {
+      position: relative;
+      background: var(--darker-bg);
+      border-bottom: 2px solid var(--primary);
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+      overflow: hidden;
+    }
+    
+    .header-container::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary), var(--primary));
+      animation: scanline 3s linear infinite;
+    }
+    
+    @keyframes scanline {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    
+    .glow-text {
+      text-shadow: 0 0 5px var(--primary), 0 0 15px rgba(0, 255, 255, 0.5);
+    }
+    
+    header h1 {
+      font-weight: 700;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: shimmer 3s infinite;
+    }
+    
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    
+    .panel {
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2), 
+                  0 0 0 1px rgba(255, 255, 255, 0.05),
+                  0 0 15px rgba(0, 255, 255, 0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+      border-left: 3px solid var(--primary);
+    }
+    
+    .panel:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3), 
+                  0 0 0 1px rgba(255, 255, 255, 0.08),
+                  0 0 20px rgba(0, 255, 255, 0.2);
+    }
+    
+    .panel h3 {
+      color: var(--primary);
+      border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+      padding-bottom: 10px;
+    }
+    
+    .mode-pill {
+      background: var(--darker-bg);
+      color: var(--text);
+      border-radius: 25px;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    .mode-pill:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+    }
+    
+    .mode-pill.active {
+      background: linear-gradient(45deg, var(--primary), var(--highlight));
+      color: #000;
+      font-weight: bold;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+    }
+    
+    input[type="time"], 
+    input[type="number"], 
+    input[type="text"] {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      color: var(--text);
+      border-radius: 5px;
+      transition: all 0.3s;
+    }
+    
+    input:focus {
+      box-shadow: 0 0 0 2px var(--primary);
+      border-color: var(--primary);
+      outline: none;
+    }
+    
+    .neon-button {
+      background: rgba(0, 0, 0, 0.5);
+      color: var(--primary);
+      border: 1px solid var(--primary);
+      border-radius: 8px;
+      padding: 8px 24px;
+      font-weight: bold;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+      box-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+    }
+    
+    .neon-button:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.2), transparent);
+      transition: 0.5s;
+      z-index: -1;
+    }
+    
+    .neon-button:hover {
+      color: #000;
+      background: var(--primary);
+      box-shadow: 0 0 20px var(--primary);
+      transform: translateY(-3px);
+      text-shadow: none;
+    }
+    
+    .neon-button:hover:before {
+      left: 100%;
+    }
+    
+    .neon-button.stop {
+      color: var(--secondary);
+      border-color: var(--secondary);
+    }
+    
+    .neon-button.stop:hover {
+      background: var(--secondary);
+      box-shadow: 0 0 20px var(--secondary);
+    }
+    
+    .clock-container {
+      display: inline-block;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 5px 15px;
+      border-radius: 25px;
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+    }
+    
+    #clock {
+      font-size: 1.3rem;
+      font-weight: bold;
+      font-family: 'Courier New', monospace;
+      color: var(--primary);
+    }
+    
+    #bellStatus {
+      display: inline-block;
+      margin-left: 15px;
+      padding: 5px 15px;
+      border-radius: 25px;
+      font-weight: bold;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    #bellIndicator {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: var(--secondary);
+      box-shadow: 0 0 15px var(--secondary), 0 0 5px rgba(255, 255, 255, 0.5);
+      animation: pulse 0.5s infinite alternate;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(1.2); opacity: 1; }
+    }
+    
+    table {
+      border-collapse: separate;
+      border-spacing: 0;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    th {
+      background: rgba(0, 0, 0, 0.3);
+      color: var(--primary);
+      padding: 12px;
+      font-weight: bold;
+      border: none;
+      text-align: center;
+    }
+    
+    td {
+      padding: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      text-align: center;
+    }
+    
+    tr:hover td {
+      background: rgba(0, 255, 255, 0.05);
+    }
+    
+    .delete-btn {
+      background: rgba(255, 0, 0, 0.2);
+      color: #ff5555;
+      border: 1px solid #ff5555;
+      border-radius: 5px;
+      padding: 5px 10px;
+      transition: all 0.3s;
+    }
+    
+    .delete-btn:hover {
+      background: #ff5555;
+      color: #000;
+      box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+    }
+    
+    .bell-control-container {
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.15);
+      border-radius: 12px;
+      margin: 15px 0;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .bell-animation {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      z-index: 10;
+      opacity: 0.7;
+    }
+    
+    .bell-icon {
+      font-size: 30px;
+      color: var(--primary);
+      animation: bellShake 0s ease 0s infinite normal none;
+    }
+    
+    @keyframes bellShake {
+      0% { transform: rotate(0); }
+      10% { transform: rotate(20deg); }
+      20% { transform: rotate(-20deg); }
+      30% { transform: rotate(15deg); }
+      40% { transform: rotate(-15deg); }
+      50% { transform: rotate(10deg); }
+      60% { transform: rotate(-10deg); }
+      70% { transform: rotate(5deg); }
+      80% { transform: rotate(-5deg); }
+      90% { transform: rotate(0); }
+      100% { transform: rotate(0); }
+    }
+    
+    /* Responsive styling */
+    @media (max-width: 768px) {
+      .panel {
+        padding: 15px;
+      }
+      
+      input, select, button {
+        margin-bottom: 10px;
+      }
+      
+      .mode-pill {
+        display: block;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body class="pb-5">
+  <div class="header-container">
+    <header class="py-3 text-center">
+      <h1 class="display-4 mb-3 animate__animated animate__fadeIn">පාසල් සීනු පාලන පද්ධතිය</h1>
+      <div class="d-flex justify-content-center align-items-center flex-wrap gap-3 mb-2">
+        <div class="clock-container animate__animated animate__fadeIn">
+          <i class="far fa-clock me-2"></i>
+          <span id="clock">00:00:00</span>
+        </div>
+        <div class="d-flex align-items-center animate__animated animate__fadeIn" style="animation-delay: 0.2s">
+          <span id="bellStatus" class="d-flex align-items-center">
+            <i class="fas fa-bell-slash me-2"></i>
+            සීනුව නිහඬයි
+          </span>
+          <span id="bellIndicator" class="ms-2 hidden"></span>
+        </div>
+      </div>
+    </header>
+  </div>
+
+  <div class="container py-4">
+    <!-- Mode Selection -->
+    <div class="d-flex justify-content-center mb-4 animate__animated animate__fadeIn">
+      <div class="btn-group" role="group">
+        <span id="autoModeBtn" class="mode-pill px-4 py-2 d-flex align-items-center" onclick="setAutoMode()">
+          <i class="fas fa-magic me-2"></i> ස්වයංක්‍රීය මාදිලිය
+        </span>
+        <span id="manualModeBtn" class="mode-pill px-4 py-2 d-flex align-items-center" onclick="setManualMode()">
+          <i class="fas fa-hand-pointer me-2"></i> අතින් මාදිලිය
+        </span>
+      </div>
+      <button onclick="testBell()" class="neon-button ms-3" aria-label="Test the bell sound">
+        <i class="fas fa-bell me-2"></i> සීනුව පරීක්ෂා කිරීම
+      </button>
+    </div>
+
+    <!-- Bell Control Buttons -->
+    <div class="bell-control-container animate__animated animate__fadeIn" style="animation-delay: 0.3s">
+      <div class="d-flex justify-content-center gap-4">
+        <button class="neon-button" onclick="startManualBell()">
+          <i class="fas fa-volume-up me-2"></i> සීනුව ඇරඹීම
+        </button>
+        <button class="neon-button stop" onclick="stopManualBell()">
+          <i class="fas fa-volume-mute me-2"></i> සීනුව නවත්වීම
+        </button>
+      </div>
+    </div>
+
+    <!-- Auto Panel -->
+    <div id="autoPanel" class="panel p-4 mb-4 animate__animated animate__fadeIn" style="animation-delay: 0.4s">
+      <h3 class="mb-4">
+        <i class="fas fa-calendar-alt me-2"></i> ස්වයංක්‍රීය කාලසටහන සැකසීම
+      </h3>
+      <div class="row g-3">
+        <div class="col-md-6 col-lg-4">
+          <label class="form-label">ආරම්භක වේලාව:</label>
+          <div class="input-group">
+            <span class="input-group-text bg-dark text-light border-secondary">
+              <i class="far fa-clock"></i>
+            </span>
+            <input type="time" id="autoStartTime" value="08:00" class="form-control">
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <label class="form-label">කාල පරිච්ඡේද දිගුව (මිනිත්තු):</label>
+          <div class="input-group">
+            <span class="input-group-text bg-dark text-light border-secondary">
+              <i class="fas fa-hourglass-half"></i>
+            </span>
+            <input type="number" id="periodLength" value="40" required class="form-control">
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <label class="form-label">කාල පරිච්ඡේද සංඛ්‍යාව:</label>
+          <div class="input-group">
+            <span class="input-group-text bg-dark text-light border-secondary">
+              <i class="fas fa-list-ol"></i>
+            </span>
+            <input type="number" id="numPeriods" value="8" required class="form-control">
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <label class="form-label">විවේක සංඛ්‍යාව:</label>
+          <div class="input-group">
+            <span class="input-group-text bg-dark text-light border-secondary">
+              <i class="fas fa-coffee"></i>
+            </span>
+            <input type="number" id="numBreaks" value="2" required class="form-control">
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <label class="form-label">විවේක දිගුව (මිනිත්තු):</label>
+          <div class="input-group">
+            <span class="input-group-text bg-dark text-light border-secondary">
+              <i class="fas fa-pause"></i>
+            </span>
+            <input type="number" id="breakLength" value="15" required class="form-control">
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+          <label class="form-label">පළමු විවේකය කාල පරිච්ඡේද කීයෙන් පසුව:</label>
+          <div class="input-group">
+            <span class="input-group-text bg-dark text-light border-secondary">
+              <i class="fas fa-sort-numeric-down"></i>
+            </span>
+            <input type="number" id="firstBreakAfter" value="3" required class="form-control">
+          </div>
+        </div>
+      </div>
+      <div class="text-center mt-4">
+        <button onclick="generateAutoSchedule()" class="neon-button">
+          <i class="fas fa-cogs me-2"></i> කාලසටහන ජනනය කිරීම
+        </button>
+      </div>
+    </div>
+
+    <!-- Manual Panel -->
+    <div id="manualPanel" class="panel p-4 mb-4 animate__animated animate__fadeIn hidden" style="animation-delay: 0.4s">
+      <h3 class="mb-4">
+        <i class="fas fa-edit me-2"></i> අතින් කාලසටහන සැකසීම
+      </h3>
+      <form id="periodForm" class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">කාල පරිච්ඡේද අංකය:</label>
+          <div class="input-group">
+            <span class="input-group-text bg-dark text-light border-secondary">
+              <i class="fas fa-hashtag"></i>
+            </span>
+            <input type="text" id="periodNumber" required class="form-control">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">ආරම්භක වේලාව:</label>
+          <div class="input-group">
+            <span class="input-group-text bg-dark text-light border-secondary">
+              <i class="fas fa-play"></i>
+            </span>
+            <input type="time" id="periodStart" required class="form-control">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">අවසාන වේලාව:</label>
+          <div class="input-group">
+            <span class="input-group-text bg-dark text-light border-secondary">
+              <i class="fas fa-stop"></i>
+            </span>
+            <input type="time" id="periodEnd" required class="form-control">
+          </div>
+        </div>
+        <div class="col-12 text-center">
+          <button type="submit" class="neon-button">
+            <i class="fas fa-plus-circle me-2"></i> එකතු කිරීම
+          </button>
+        </div>
+      </form>
+      
+      <div class="mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4 class="mb-0 text-primary">
+            <i class="fas fa-list me-2"></i> එකතු කළ කාල පරිච්ඡේද
+          </h4>
+          <button onclick="updateManualSchedule()" class="neon-button btn-sm">
+            <i class="fas fa-sync-alt me-2"></i> කාලසටහන යාවත්කාලීන කිරීම
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table id="manualTable" class="table table-dark table-hover">
+            <thead>
+              <tr>
+                <th><i class="fas fa-hashtag me-1"></i> කාල පරිච්ඡේදය</th>
+                <th><i class="fas fa-play me-1"></i> ආරම්භක වේලාව</th>
+                <th><i class="fas fa-stop me-1"></i> අවසාන වේලාව</th>
+                <th><i class="fas fa-cog me-1"></i> ක්‍රියාව</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Schedule Display -->
+    <div class="panel p-4 animate__animated animate__fadeIn" style="animation-delay: 0.5s">
+      <h3 class="mb-4">
+        <i class="fas fa-calendar-week me-2"></i> කාලසටහන
+      </h3>
+      <div class="table-responsive">
+        <table id="scheduleTable" class="table table-dark table-hover">
+          <thead>
+            <tr>
+              <th><i class="fas fa-hashtag me-1"></i> කාල පරිච්ඡේදය</th>
+              <th><i class="fas fa-play me-1"></i> ආරම්භක වේලාව</th>
+              <th><i class="fas fa-stop me-1"></i> අවසාන වේලාව</th>
+              <th><i class="fas fa-bell me-1"></i> සීනු ආරම්භක වේලාව</th>
+              <th><i class="fas fa-bell-slash me-1"></i> සීනු අවසාන වේලාව</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="bell-animation">
+    <i class="fas fa-bell bell-icon"></i>
+  </div>
+
+  <!-- Audio Element -->
+  <audio id="bellSound" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"></audio>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
+  <script>
+    // Global variables    
+    let isAuto = true;    
+    let userPeriods = [];      
+    let bellSchedule = [];     
+    let allBellTimes = [];     
+    let lastRungBell = "";     
+    let manualBellInterval = null;    
+    let manualBellDuration = 30; // Bell rings for 30 seconds    
+    let isManualBellRinging = false;
+    let bellAnimation = document.querySelector('.bell-icon');
+        
+    // Clock Update Function    
+    function updateClock() {    
+      const now = new Date();    
+      const clock = document.getElementById('clock');    
+      clock.textContent = now.toLocaleTimeString('en-US', { hour12: false });    
+    }    
+    setInterval(updateClock, 1000);    
+        
+    // Utility function to add minutes to time string (HH:MM)    
+    function addMinutesToTime(timeStr, minutesToAdd) {    
+      const [hours, minutes] = timeStr.split(':').map(Number);    
+      let totalMinutes = hours * 60 + minutes + minutesToAdd;    
+          
+      const newHours = Math.floor(totalMinutes / 60) % 24;    
+      const newMinutes = totalMinutes % 60;    
+          
+      return `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;    
+    }    
+        
+    // Manual Bell Control Functions    
+    function startManualBell() {    
+      // Prevent multiple simultaneous bell rings    
+      if (isManualBellRinging) return;    
+    
+      isManualBellRinging = true;    
+      const bellSound = document.getElementById('bellSound');    
+      const bellIndicator = document.getElementById('bellIndicator');    
+      const bellStatus = document.getElementById('bellStatus');    
+    
+      // Start bell animation
+      bellAnimation.style.animation = 'bellShake 1s infinite';
+      
+      // Continuous bell ringing    
+      manualBellInterval = setInterval(() => {    
+        bellSound.currentTime = 0;    
+        bellSound.play();    
+      }, 1000); // Repeat sound every second    
+    
+      // Show bell indicator    
+      bellIndicator.classList.remove('hidden');
+      bellStatus.innerHTML = '<i class="fas fa-bell me-2"></i> සීනුව වාදනය වේ';
+      bellStatus.classList.add('animate__animated', 'animate__pulse', 'animate__infinite');
+      bellStatus.style.background = 'rgba(255, 0, 255, 0.2)';
+      bellStatus.style.borderColor = 'rgba(255, 0, 255, 0.5)';
+    
+      // Automatically stop after specified duration    
+      setTimeout(stopManualBell, manualBellDuration * 1000);    
+    }    
+    
+    function stopManualBell() {    
+      if (!isManualBellRinging) return;    
+    
+      // Clear the interval    
+      if (manualBellInterval) {    
+        clearInterval(manualBellInterval);    
+      }
+      
+      // Stop bell animation
+      bellAnimation.style.animation = 'none';
+    
+      // Hide bell indicator    
+      const bellIndicator = document.getElementById('bellIndicator');    
+      const bellStatus = document.getElementById('bellStatus');    
+          
+      bellIndicator.classList.add('hidden');    
+      bellStatus.innerHTML = '<i class="fas fa-bell-slash me-2"></i> සීනුව නිහඬයි';
+      bellStatus.classList.remove('animate__animated', 'animate__pulse', 'animate__infinite');
+      bellStatus.style.background = 'rgba(0, 0, 0, 0.3)';
+      bellStatus.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+    
+      // Reset flag    
+      isManualBellRinging = false;    
+    }    
+        
+    // Function to generate automatic schedule with balanced periods    
+      // ... (previous JavaScript code)
+
+    // Function to generate automatic schedule with balanced periods    
+    function generateAutoSchedule() {    
+      const startTime = document.getElementById('autoStartTime').value;    
+      const periodLength = parseInt(document.getElementById('periodLength').value);    
+      const numPeriods = parseInt(document.getElementById('numPeriods').value);    
+      const numBreaks = parseInt(document.getElementById('numBreaks').value);    
+      const breakLength = parseInt(document.getElementById('breakLength').value);    
+      const firstBreakAfter = parseInt(document.getElementById('firstBreakAfter').value);    
+          
+      if (!startTime || isNaN(periodLength) || isNaN(numPeriods) || isNaN(numBreaks) || isNaN(breakLength)) {    
+        alert("සියලුම ක්ෂේත්‍ර පුරවන්න!");    
+        return;    
+      }    
+          
+      bellSchedule = [];    
+      allBellTimes = [];    
+          
+      let currentTime = startTime;    
+      let periodCounter = 1;    
+      let breakCounter = 0;    
+          
+      let breakPositions = [];    
+      if (numBreaks > 0) {    
+        let breakPosition = firstBreakAfter;    
+        for (let i = 0; i < numBreaks; i++) {    
+          breakPositions.push(breakPosition);    
+          breakPosition += periodLength + 1;    
+        }    
+      }    
+          
+      const scheduleTable = document.getElementById('scheduleTable').getElementsByTagName('tbody')[0];    
+      scheduleTable.innerHTML = '';    
+          
+      for (let i = 0; i < numPeriods; i++) {    
+        let periodStart = currentTime;    
+        let periodEnd = addMinutesToTime(currentTime, periodLength);    
+        let bellStart = addMinutesToTime(currentTime, periodLength - 5);    
+        let bellEnd = periodEnd;    
+    
+        // Create table row
+        let row = scheduleTable.insertRow();
+        row.classList.add('animate__animated', 'animate__fadeIn');
+        
+        // Period number
+        let periodCell = row.insertCell();
+        periodCell.textContent = periodCounter;
+        
+        // Start time
+        let startCell = row.insertCell();
+        startCell.textContent = periodStart;
+        
+        // End time
+        let endCell = row.insertCell();
+        endCell.textContent = periodEnd;
+        
+        // Bell start
+        let bellStartCell = row.insertCell();
+        bellStartCell.textContent = bellStart;
+        
+        // Bell end
+        let bellEndCell = row.insertCell();
+        bellEndCell.textContent = bellEnd;
+
+        // Add to bell schedule
+        bellSchedule.push({
+          period: periodCounter,
+          start: periodStart,
+          end: periodEnd,
+          bellStart: bellStart,
+          bellEnd: bellEnd
+        });
+        
+        allBellTimes.push(bellStart);
+        currentTime = periodEnd;
+        periodCounter++;
+
+        // Add break if needed
+        if (breakPositions.includes(i + 1)) {
+          let breakStart = currentTime;
+          let breakEnd = addMinutesToTime(currentTime, breakLength);
+          
+          // Add break row
+          let breakRow = scheduleTable.insertRow();
+          breakRow.classList.add('text-info', 'animate__animated', 'animate__fadeIn');
+          
+          let breakCell = breakRow.insertCell();
+          breakCell.colSpan = 5;
+          breakCell.innerHTML = `<i class="fas fa-coffee me-2"></i> විවේකය ${++breakCounter} (${breakStart} - ${breakEnd})`;
+          
+          currentTime = breakEnd;
+        }
+      }
+      
+      startAutoBellChecker();
+    }
+
+    // Mode Switching Functions
+    function setAutoMode() {
+      isAuto = true;
+      document.getElementById('autoPanel').classList.remove('hidden');
+      document.getElementById('manualPanel').classList.add('hidden');
+      document.getElementById('autoModeBtn').classList.add('active');
+      document.getElementById('manualModeBtn').classList.remove('active');
+      startAutoBellChecker();
+    }
+
+    function setManualMode() {
+      isAuto = false;
+      document.getElementById('autoPanel').classList.add('hidden');
+      document.getElementById('manualPanel').classList.remove('hidden');
+      document.getElementById('manualModeBtn').classList.add('active');
+      document.getElementById('autoModeBtn').classList.remove('active');
+      stopAutoBellChecker();
+    }
+
+    // Manual Schedule Form Handler
+    document.getElementById('periodForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const periodNumber = document.getElementById('periodNumber').value;
+      const periodStart = document.getElementById('periodStart').value;
+      const periodEnd = document.getElementById('periodEnd').value;
+      
+      if (!periodNumber || !periodStart || !periodEnd) {
+        alert("සියලුම ක්ෂේත්‍ර පුරවන්න!");
+        return;
+      }
+      
+      // Add to manual table
+      const manualTable = document.getElementById('manualTable').getElementsByTagName('tbody')[0];
+      const row = manualTable.insertRow();
+      
+      row.innerHTML = `
+        <td>${periodNumber}</td>
+        <td>${periodStart}</td>
+        <td>${periodEnd}</td>
+        <td>
+          <button class="delete-btn" onclick="this.closest('tr').remove()">
+            <i class="fas fa-trash me-2"></i> ඉවත් කිරීම
+          </button>
+        </td>
+      `;
+      
+      // Clear form
+      this.reset();
+    });
+
+    // Update Manual Schedule
+    function updateManualSchedule() {
+      const manualTable = document.getElementById('manualTable').getElementsByTagName('tbody')[0];
+      bellSchedule = [];
+      allBellTimes = [];
+      
+      Array.from(manualTable.rows).forEach(row => {
+        const cells = row.cells;
+        const bellStart = addMinutesToTime(cells[1].textContent, -5);
+        
+        bellSchedule.push({
+          period: cells[0].textContent,
+          start: cells[1].textContent,
+          end: cells[2].textContent,
+          bellStart: bellStart,
+          bellEnd: cells[2].textContent
+        });
+        
+        allBellTimes.push(bellStart);
+      });
+      
+      populateScheduleTable();
+      startAutoBellChecker();
+    }
+
+    // Populate Schedule Table
+    function populateScheduleTable() {
+      const scheduleTable = document.getElementById('scheduleTable').getElementsByTagName('tbody')[0];
+      scheduleTable.innerHTML = '';
+      
+      bellSchedule.forEach(item => {
+        const row = scheduleTable.insertRow();
+        row.innerHTML = `
+          <td>${item.period}</td>
+          <td>${item.start}</td>
+          <td>${item.end}</td>
+          <td>${item.bellStart}</td>
+          <td>${item.bellEnd}</td>
+        `;
+      });
+    }
+
+    // Auto Bell Checker
+    let bellCheckerInterval = null;
+    
+    function startAutoBellChecker() {
+      if (bellCheckerInterval) clearInterval(bellCheckerInterval);
+      bellCheckerInterval = setInterval(checkBellTimes, 1000);
+    }
+    
+    function stopAutoBellChecker() {
+      clearInterval(bellCheckerInterval);
+    }
+    
+    function checkBellTimes() {
+      if (!isAuto) return;
+      
+      const now = new Date();
+      const currentTime = now.toTimeString().slice(0, 5);
+      
+      allBellTimes.forEach(time => {
+        if (time === currentTime && lastRungBell !== time) {
+          lastRungBell = time;
+          startManualBell();
+          setTimeout(stopManualBell, 5000); // Ring for 5 seconds
+        }
+      });
+    }
+
+    // Test Bell Function
+    function testBell() {
+      startManualBell();
+      setTimeout(stopManualBell, 2000);
+    }
+
+    // Initialize
+    setAutoMode();
+    updateClock();
+  </script>
+</body>
+  </html>
