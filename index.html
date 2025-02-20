@@ -851,7 +851,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const row = manualTable.insertRow();
       
       // Calculate bell end time (1 minute after start)
-      const bellEnd = addSecondsToTime(periodStart, 30);
+      const bellEnd = addMinutesToTime(periodStart, 1);
       
       row.innerHTML = `
         <td>${periodNumber}</td>
@@ -885,7 +885,7 @@ function updateManualSchedule() {
   Array.from(tableBody.rows).forEach(row => {
     const cells = row.cells;
     const bellStart = cells[1].textContent; // Bell starts at period start time
-    const bellEnd = addSecondsToTime(bellStart, 1); // Bell rings for 1 minute
+    const bellEnd = addMinutesToTime(bellStart, 1); // Bell rings for 1 minute
     
     bellSchedule.push({
       period: cells[0].textContent,
