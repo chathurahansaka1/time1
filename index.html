@@ -537,212 +537,304 @@
   <!-- Bootstrap JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     
-  <script>
-    // Global variables    
-    let isAuto = true;    
-    let userPeriods = [];      
-    let bellSchedule = [];     
-    let allBellTimes = [];     
-    let lastRungBell = "";     
-    let manualBellInterval = null;    
-    let manualBellDuration = 30; // Bell rings for 30 seconds    
-    let isManualBellRinging = false;
-    let bellAnimation = document.querySelector('.bell-icon');
-        
-    // Clock Update Function    
-    function updateClock() {    
-      const now = new Date();    
-      const clock = document.getElementById('clock');    
-      clock.textContent = now.toLocaleTimeString('en-US', { hour12: false });    
-    }    
-    setInterval(updateClock, 1000);    
-        
-    // Utility function to add minutes to time string (HH:MM)    
-    function addMinutesToTime(timeStr, minutesToAdd) {    
-      const [hours, minutes] = timeStr.split(':').map(Number);    
-      let totalMinutes = hours * 60 + minutes + minutesToAdd;    
-          
-      const newHours = Math.floor(totalMinutes / 60) % 24;    
-      const newMinutes = totalMinutes % 60;    
-          
-      return `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;    
-    }    
-        
-    // Manual Bell Control Functions    
-    function startManualBell() {    
-      // Prevent multiple simultaneous bell rings    
-      if (isManualBellRinging) return;    
+<script>
+// Global variables    
+let isAuto = true;    
+let userPeriods = [];      
+let bellSchedule = [];     
+let allBellTimes = [];     
+let lastRungBell = "";     
+let manualBellInterval = null;    
+let manualBellDuration = 60; // Bell rings for 60 seconds (1 minute)   
+let isManualBellRinging = false;
+let bellAnimation = document.querySelector('.bell-icon');
+let bellSound; // Will initialize on window load
     
-      isManualBellRinging = true;    
-      const bellSound = document.getElementById('bellSound');    
-      const bellIndicator = document.getElementById('bellIndicator');    
-      const bellStatus = document.getElementById('bellStatus');    
-    
-      // Start bell animation
-      bellAnimation.style.animation = 'bellShake 1s infinite';
-      
-      // Continuous bell ringing    
-      manualBellInterval = setInterval(() => {    
-        bellSound.currentTime = 0;    
-        bellSound.play();    
-      }, 1000); // Repeat sound every second    
-    
-      // Show bell indicator    
-      bellIndicator.classList.remove('hidden');
-      bellStatus.innerHTML = '<i class="fas fa-bell me-2"></i> සීනුව වාදනය වේ';
-      bellStatus.classList.add('animate__animated', 'animate__pulse', 'animate__infinite');
-      bellStatus.style.background = 'rgba(255, 0, 255, 0.2)';
-      bellStatus.style.borderColor = 'rgba(255, 0, 255, 0.5)';
-    
-      // Automatically stop after specified duration    
-      setTimeout(stopManualBell, manualBellDuration * 1000);    
-    }    
-    
-    function stopManualBell() {    
-      if (!isManualBellRinging) return;    
-    
-      // Clear the interval    
-      if (manualBellInterval) {    
-        clearInterval(manualBellInterval);    
-      }
-      
-      // Stop bell animation
-      bellAnimation.style.animation = 'none';
-    
-      // Hide bell indicator    
-      const bellIndicator = document.getElementById('bellIndicator');    
-      const bellStatus = document.getElementById('bellStatus');    
-          
-      bellIndicator.classList.add('hidden');    
-      bellStatus.innerHTML = '<i class="fas fa-bell-slash me-2"></i> සීනුව නිහඬයි';
-      bellStatus.classList.remove('animate__animated', 'animate__pulse', 'animate__infinite');
-      bellStatus.style.background = 'rgba(0, 0, 0, 0.3)';
-      bellStatus.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-    
-      // Reset flag    
-      isManualBellRinging = false;    
-    }    
-        
-    // Function to generate automatic schedule with balanced periods    
-      // ... (previous JavaScript code)
+// Initialize on window load to ensure all elements are available
+window.addEventListener('load', function() {
+  // Initialize the bell sound
+  bellSound = document.getElementById('bellSound');
+  if (!bellSound) {
+    console.error('Bell sound element not found! Creating one...');
+    bellSound = document.createElement('audio');
+    bellSound.id = 'bellSound';
+    bellSound.src = 'https://soundbible.com/mp3/School_Bell-YouTube-948266854.mp3'; // Default bell sound
+    bellSound.preload = 'auto';
+    document.body.appendChild(bellSound);
+  }
+  
+  // Initialize bell animation element if not found
+  if (!bellAnimation) {
+    console.warn('Bell animation element not found');
+  }
+  
+  // Initialize the system
+  updateClock();
+  setAutoMode();
+});
 
-    // Function to generate automatic schedule with balanced periods    
-    function generateAutoSchedule() {    
-      const startTime = document.getElementById('autoStartTime').value;    
-      const periodLength = parseInt(document.getElementById('periodLength').value);    
-      const numPeriods = parseInt(document.getElementById('numPeriods').value);    
-      const numBreaks = parseInt(document.getElementById('numBreaks').value);    
-      const breakLength = parseInt(document.getElementById('breakLength').value);    
-      const firstBreakAfter = parseInt(document.getElementById('firstBreakAfter').value);    
-          
-      if (!startTime || isNaN(periodLength) || isNaN(numPeriods) || isNaN(numBreaks) || isNaN(breakLength)) {    
-        alert("සියලුම ක්ෂේත්‍ර පුරවන්න!");    
-        return;    
-      }    
-          
-      bellSchedule = [];    
-      allBellTimes = [];    
-          
-      let currentTime = startTime;    
-      let periodCounter = 1;    
-      let breakCounter = 0;    
-          
-      let breakPositions = [];    
-      if (numBreaks > 0) {    
-        let breakPosition = firstBreakAfter;    
-        for (let i = 0; i < numBreaks; i++) {    
-          breakPositions.push(breakPosition);    
-          breakPosition += periodLength + 1;    
-        }    
-      }    
-          
-      const scheduleTable = document.getElementById('scheduleTable').getElementsByTagName('tbody')[0];    
-      scheduleTable.innerHTML = '';    
-          
-      for (let i = 0; i < numPeriods; i++) {    
-        let periodStart = currentTime;    
-        let periodEnd = addMinutesToTime(currentTime, periodLength);    
-        let bellStart = addMinutesToTime(currentTime, periodLength - 5);    
-        let bellEnd = periodEnd;    
+// Clock Update Function    
+function updateClock() {    
+  const now = new Date();    
+  const clock = document.getElementById('clock');
+  if (clock) {
+    clock.textContent = now.toLocaleTimeString('en-US', { hour12: false });
+  }
+}    
+setInterval(updateClock, 1000);    
     
-        // Create table row
-        let row = scheduleTable.insertRow();
-        row.classList.add('animate__animated', 'animate__fadeIn');
-        
-        // Period number
-        let periodCell = row.insertCell();
-        periodCell.textContent = periodCounter;
-        
-        // Start time
-        let startCell = row.insertCell();
-        startCell.textContent = periodStart;
-        
-        // End time
-        let endCell = row.insertCell();
-        endCell.textContent = periodEnd;
-        
-        // Bell start
-        let bellStartCell = row.insertCell();
-        bellStartCell.textContent = bellStart;
-        
-        // Bell end
-        let bellEndCell = row.insertCell();
-        bellEndCell.textContent = bellEnd;
+// Utility function to add minutes to time string (HH:MM)    
+function addMinutesToTime(timeStr, minutesToAdd) {    
+  const [hours, minutes] = timeStr.split(':').map(Number);    
+  let totalMinutes = hours * 60 + minutes + minutesToAdd;    
+      
+  const newHours = Math.floor(totalMinutes / 60) % 24;    
+  const newMinutes = totalMinutes % 60;    
+      
+  return `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;    
+}    
+    
+// Manual Bell Control Functions    
+function startManualBell() {    
+  // Prevent multiple simultaneous bell rings    
+  if (isManualBellRinging) return;    
 
-        // Add to bell schedule
-        bellSchedule.push({
-          period: periodCounter,
-          start: periodStart,
-          end: periodEnd,
-          bellStart: bellStart,
-          bellEnd: bellEnd
+  isManualBellRinging = true;
+  console.log('STARTING BELL RING');
+      
+  // Get elements for bell sound and indicators
+  const bellSound = document.getElementById('bellSound');
+  const bellIndicator = document.getElementById('bellIndicator');
+  const bellStatus = document.getElementById('bellStatus');
+  
+  // Check if bell sound exists
+  if (!bellSound) {
+    console.error('Bell sound element not found!');
+    // Create a fallback audio element
+    const tempBellSound = document.createElement('audio');
+    tempBellSound.src = 'https://soundbible.com/mp3/School_Bell-YouTube-948266854.mp3';
+    tempBellSound.play();
+  } else {
+    // Play the bell sound
+    try {
+      bellSound.currentTime = 0;
+      const playPromise = bellSound.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.error('Bell sound play failed:', error);
+          // Try to recover by setting up a click event to trigger sound
+          document.addEventListener('click', function playOnInteraction() {
+            bellSound.play();
+            document.removeEventListener('click', playOnInteraction);
+          }, { once: true });
         });
-        
-        allBellTimes.push(bellStart);
-        currentTime = periodEnd;
-        periodCounter++;
-
-        // Add break if needed
-        if (breakPositions.includes(i + 1)) {
-          let breakStart = currentTime;
-          let breakEnd = addMinutesToTime(currentTime, breakLength);
-          
-          // Add break row
-          let breakRow = scheduleTable.insertRow();
-          breakRow.classList.add('text-info', 'animate__animated', 'animate__fadeIn');
-          
-          let breakCell = breakRow.insertCell();
-          breakCell.colSpan = 5;
-          breakCell.innerHTML = `<i class="fas fa-coffee me-2"></i> විවේකය ${++breakCounter} (${breakStart} - ${breakEnd})`;
-          
-          currentTime = breakEnd;
-        }
       }
+    } catch (e) {
+      console.error('Error playing bell sound:', e);
+    }
+  }
+
+  // Start bell animation if element exists
+  if (bellAnimation) {
+    bellAnimation.style.animation = 'bellShake 1s infinite';
+  }
+  
+  // Continuous bell ringing    
+  manualBellInterval = setInterval(() => {
+    if (bellSound) {
+      try {
+        bellSound.currentTime = 0;
+        bellSound.play().catch(e => console.warn('Repeat bell play error:', e));
+      } catch (e) {
+        console.warn('Error in bell interval:', e);
+      }
+    }
+  }, 1000); // Repeat sound every second    
+
+  // Show bell indicator if elements exist
+  if (bellIndicator) {
+    bellIndicator.classList.remove('hidden');
+  }
+  
+  if (bellStatus) {
+    bellStatus.innerHTML = '<i class="fas fa-bell me-2"></i> සීනුව වාදනය වේ';
+    bellStatus.classList.add('animate__animated', 'animate__pulse', 'animate__infinite');
+    bellStatus.style.background = 'rgba(255, 0, 255, 0.2)';
+    bellStatus.style.borderColor = 'rgba(255, 0, 255, 0.5)';
+  }
+
+  // Automatically stop after specified duration    
+  setTimeout(stopManualBell, manualBellDuration * 1000);    
+}    
+
+function stopManualBell() {    
+  if (!isManualBellRinging) return;    
+
+  console.log('STOPPING BELL RING');
+
+  // Clear the interval    
+  if (manualBellInterval) {    
+    clearInterval(manualBellInterval);    
+  }
+  
+  // Stop bell animation
+  if (bellAnimation) {
+    bellAnimation.style.animation = 'none';
+  }
+
+  // Hide bell indicator    
+  const bellIndicator = document.getElementById('bellIndicator');    
+  const bellStatus = document.getElementById('bellStatus');    
       
-      startAutoBellChecker();
-    }
+  if (bellIndicator) {
+    bellIndicator.classList.add('hidden');    
+  }
+  
+  if (bellStatus) {
+    bellStatus.innerHTML = '<i class="fas fa-bell-slash me-2"></i> සීනුව නිහඬයි';
+    bellStatus.classList.remove('animate__animated', 'animate__pulse', 'animate__infinite');
+    bellStatus.style.background = 'rgba(0, 0, 0, 0.3)';
+    bellStatus.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+  }
 
-    // Mode Switching Functions
-    function setAutoMode() {
-      isAuto = true;
-      document.getElementById('autoPanel').classList.remove('hidden');
-      document.getElementById('manualPanel').classList.add('hidden');
-      document.getElementById('autoModeBtn').classList.add('active');
-      document.getElementById('manualModeBtn').classList.remove('active');
-      startAutoBellChecker();
-    }
+  // Reset flag    
+  isManualBellRinging = false;    
+}    
+    
+// Function to generate automatic schedule with balanced periods    
+function generateAutoSchedule() {    
+  const startTime = document.getElementById('autoStartTime').value;    
+  const periodLength = parseInt(document.getElementById('periodLength').value);    
+  const numPeriods = parseInt(document.getElementById('numPeriods').value);    
+  const numBreaks = parseInt(document.getElementById('numBreaks').value);    
+  const breakLength = parseInt(document.getElementById('breakLength').value);    
+  const firstBreakAfter = parseInt(document.getElementById('firstBreakAfter').value);    
+      
+  if (!startTime || isNaN(periodLength) || isNaN(numPeriods) || isNaN(numBreaks) || isNaN(breakLength)) {    
+    alert("සියලුම ක්ෂේත්‍ර පුරවන්න!");    
+    return;    
+  }    
+      
+  bellSchedule = [];    
+  allBellTimes = [];    
+      
+  let currentTime = startTime;    
+  let periodCounter = 1;    
+  let breakCounter = 0;    
+      
+  let breakPositions = [];    
+  if (numBreaks > 0) {    
+    let breakPosition = firstBreakAfter;    
+    for (let i = 0; i < numBreaks; i++) {    
+      breakPositions.push(breakPosition);    
+      breakPosition += periodLength + 1;    
+    }    
+  }    
+      
+  const scheduleTable = document.getElementById('scheduleTable').getElementsByTagName('tbody')[0];    
+  scheduleTable.innerHTML = '';    
+      
+  for (let i = 0; i < numPeriods; i++) {    
+    let periodStart = currentTime;    
+    let periodEnd = addMinutesToTime(currentTime, periodLength);    
+    let bellStart = periodStart; // Bell starts at period start time
+    let bellEnd = addMinutesToTime(periodStart, 1); // Bell rings for 1 minute
 
-    function setManualMode() {
-      isAuto = false;
-      document.getElementById('autoPanel').classList.add('hidden');
-      document.getElementById('manualPanel').classList.remove('hidden');
-      document.getElementById('manualModeBtn').classList.add('active');
-      document.getElementById('autoModeBtn').classList.remove('active');
-      stopAutoBellChecker();
-    }
+    // Create table row
+    let row = scheduleTable.insertRow();
+    row.classList.add('animate__animated', 'animate__fadeIn');
+    
+    // Period number
+    let periodCell = row.insertCell();
+    periodCell.textContent = periodCounter;
+    
+    // Start time
+    let startCell = row.insertCell();
+    startCell.textContent = periodStart;
+    
+    // End time
+    let endCell = row.insertCell();
+    endCell.textContent = periodEnd;
+    
+    // Bell start
+    let bellStartCell = row.insertCell();
+    bellStartCell.textContent = bellStart;
+    
+    // Bell end
+    let bellEndCell = row.insertCell();
+    bellEndCell.textContent = bellEnd;
 
-    // Manual Schedule Form Handler
-    document.getElementById('periodForm').addEventListener('submit', function(e) {
+    // Add to bell schedule
+    bellSchedule.push({
+      period: periodCounter,
+      start: periodStart,
+      end: periodEnd,
+      bellStart: bellStart,
+      bellEnd: bellEnd
+    });
+    
+    allBellTimes.push(bellStart);
+    currentTime = periodEnd;
+    periodCounter++;
+
+    // Add break if needed
+    if (breakPositions.includes(i + 1)) {
+      let breakStart = currentTime;
+      let breakEnd = addMinutesToTime(currentTime, breakLength);
+      
+      // Add break row
+      let breakRow = scheduleTable.insertRow();
+      breakRow.classList.add('text-info', 'animate__animated', 'animate__fadeIn');
+      
+      let breakCell = breakRow.insertCell();
+      breakCell.colSpan = 5;
+      breakCell.innerHTML = `<i class="fas fa-coffee me-2"></i> විවේකය ${++breakCounter} (${breakStart} - ${breakEnd})`;
+      
+      currentTime = breakEnd;
+    }
+  }
+  
+  console.log("Generated schedule with bell times:", allBellTimes);
+  startAutoBellChecker();
+}
+
+// Mode Switching Functions
+function setAutoMode() {
+  isAuto = true;
+  const autoPanel = document.getElementById('autoPanel');
+  const manualPanel = document.getElementById('manualPanel');
+  const autoModeBtn = document.getElementById('autoModeBtn');
+  const manualModeBtn = document.getElementById('manualModeBtn');
+  
+  if (autoPanel) autoPanel.classList.remove('hidden');
+  if (manualPanel) manualPanel.classList.add('hidden');
+  if (autoModeBtn) autoModeBtn.classList.add('active');
+  if (manualModeBtn) manualModeBtn.classList.remove('active');
+  
+  startAutoBellChecker();
+}
+
+function setManualMode() {
+  isAuto = false;
+  const autoPanel = document.getElementById('autoPanel');
+  const manualPanel = document.getElementById('manualPanel');
+  const autoModeBtn = document.getElementById('autoModeBtn');
+  const manualModeBtn = document.getElementById('manualModeBtn');
+  
+  if (autoPanel) autoPanel.classList.add('hidden');
+  if (manualPanel) manualPanel.classList.remove('hidden');
+  if (autoModeBtn) autoModeBtn.classList.remove('active');
+  if (manualModeBtn) manualModeBtn.classList.add('active');
+  
+  stopAutoBellChecker();
+}
+
+// Manual Schedule Form Handler
+document.addEventListener('DOMContentLoaded', function() {
+  const periodForm = document.getElementById('periodForm');
+  if (periodForm) {
+    periodForm.addEventListener('submit', function(e) {
       e.preventDefault();
       
       const periodNumber = document.getElementById('periodNumber').value;
@@ -758,6 +850,9 @@
       const manualTable = document.getElementById('manualTable').getElementsByTagName('tbody')[0];
       const row = manualTable.insertRow();
       
+      // Calculate bell end time (1 minute after start)
+      const bellEnd = addSecondsToTime(periodStart, 30);
+      
       row.innerHTML = `
         <td>${periodNumber}</td>
         <td>${periodStart}</td>
@@ -772,85 +867,141 @@
       // Clear form
       this.reset();
     });
+  }
+});
 
-    // Update Manual Schedule
-    function updateManualSchedule() {
-      const manualTable = document.getElementById('manualTable').getElementsByTagName('tbody')[0];
-      bellSchedule = [];
-      allBellTimes = [];
-      
-      Array.from(manualTable.rows).forEach(row => {
-        const cells = row.cells;
-        const bellStart = addMinutesToTime(cells[1].textContent, -5);
-        
-        bellSchedule.push({
-          period: cells[0].textContent,
-          start: cells[1].textContent,
-          end: cells[2].textContent,
-          bellStart: bellStart,
-          bellEnd: cells[2].textContent
-        });
-        
-        allBellTimes.push(bellStart);
-      });
-      
-      populateScheduleTable();
-      startAutoBellChecker();
-    }
-
-    // Populate Schedule Table
-    function populateScheduleTable() {
-      const scheduleTable = document.getElementById('scheduleTable').getElementsByTagName('tbody')[0];
-      scheduleTable.innerHTML = '';
-      
-      bellSchedule.forEach(item => {
-        const row = scheduleTable.insertRow();
-        row.innerHTML = `
-          <td>${item.period}</td>
-          <td>${item.start}</td>
-          <td>${item.end}</td>
-          <td>${item.bellStart}</td>
-          <td>${item.bellEnd}</td>
-        `;
-      });
-    }
-
-    // Auto Bell Checker
-    let bellCheckerInterval = null;
+// Update Manual Schedule
+function updateManualSchedule() {
+  const manualTable = document.getElementById('manualTable');
+  if (!manualTable) {
+    console.error('Manual table not found!');
+    return;
+  }
+  
+  const tableBody = manualTable.getElementsByTagName('tbody')[0];
+  bellSchedule = [];
+  allBellTimes = [];
+  
+  Array.from(tableBody.rows).forEach(row => {
+    const cells = row.cells;
+    const bellStart = cells[1].textContent; // Bell starts at period start time
+    const bellEnd = addSecondsToTime(bellStart, 1); // Bell rings for 1 minute
     
-    function startAutoBellChecker() {
-      if (bellCheckerInterval) clearInterval(bellCheckerInterval);
-      bellCheckerInterval = setInterval(checkBellTimes, 1000);
-    }
+    bellSchedule.push({
+      period: cells[0].textContent,
+      start: cells[1].textContent,
+      end: cells[2].textContent,
+      bellStart: bellStart,
+      bellEnd: bellEnd
+    });
     
-    function stopAutoBellChecker() {
-      clearInterval(bellCheckerInterval);
-    }
+    allBellTimes.push(bellStart);
+  });
+  
+  console.log("Updated manual schedule with bell times:", allBellTimes);
+  populateScheduleTable();
+  startAutoBellChecker();
+}
+
+// Populate Schedule Table
+function populateScheduleTable() {
+  const scheduleTable = document.getElementById('scheduleTable');
+  if (!scheduleTable) {
+    console.error('Schedule table not found!');
+    return;
+  }
+  
+  const tableBody = scheduleTable.getElementsByTagName('tbody')[0];
+  tableBody.innerHTML = '';
+  
+  bellSchedule.forEach(item => {
+    const row = tableBody.insertRow();
+    row.innerHTML = `
+      <td>${item.period}</td>
+      <td>${item.start}</td>
+      <td>${item.end}</td>
+      <td>${item.bellStart}</td>
+      <td>${item.bellEnd}</td>
+    `;
+  });
+}
+
+// Auto Bell Checker
+let bellCheckerInterval = null;
+
+function startAutoBellChecker() {
+  console.log("Starting auto bell checker");
+  if (bellCheckerInterval) clearInterval(bellCheckerInterval);
+  bellCheckerInterval = setInterval(checkBellTimes, 1000);
+}
+
+function stopAutoBellChecker() {
+  console.log("Stopping auto bell checker");
+  if (bellCheckerInterval) clearInterval(bellCheckerInterval);
+}
+
+// Updated bell checking function without limiting to the first 2 seconds
+function checkBellTimes() {
+  if (!isAuto || bellSchedule.length === 0) return;
+  
+  const now = new Date();
+  const currentHours = now.getHours();
+  const currentMinutes = now.getMinutes();
+  const currentTime = `${String(currentHours).padStart(2, '0')}:${String(currentMinutes).padStart(2, '0')}`;
+  
+  // Check if current time matches any bell time
+  for (let i = 0; i < allBellTimes.length; i++) {
+    const bellTime = allBellTimes[i];
+    const [bellHours, bellMinutes] = bellTime.split(':').map(Number);
     
-    function checkBellTimes() {
-      if (!isAuto) return;
-      
-      const now = new Date();
-      const currentTime = now.toTimeString().slice(0, 5);
-      
-      allBellTimes.forEach(time => {
-        if (time === currentTime && lastRungBell !== time) {
-          lastRungBell = time;
-          startManualBell();
-          setTimeout(stopManualBell, 5000); // Ring for 5 seconds
-        }
+    if (currentHours === bellHours && currentMinutes === bellMinutes) {
+      const lastRungKey = `${bellHours}:${bellMinutes}`;
+      if (lastRungBell !== lastRungKey) {
+        console.log(`BELL TIME MATCH! Current: ${currentTime}, Bell time: ${bellTime}`);
+        lastRungBell = lastRungKey;
+        startManualBell();
+        return;
+      }
+    }
+  }
+  
+  // Reset lastRungBell if the minute has changed
+  if (lastRungBell) {
+    const [lastHours, lastMinutes] = lastRungBell.split(':').map(Number);
+    if (lastHours !== currentHours || lastMinutes !== currentMinutes) {
+      lastRungBell = "";
+    }
+  }
+}
+
+// Test Bell Function
+function testBell() {
+  console.log("Testing bell...");
+  startManualBell();
+  setTimeout(stopManualBell, 5000); // Test bell for 5 seconds
+}
+
+// Additional initialization for bell sound
+document.addEventListener('DOMContentLoaded', function() {
+  // Try to initialize bell sound early
+  const bellSound = document.getElementById('bellSound');
+  if (bellSound) {
+    // Add listener to handle user interaction requirement for audio
+    document.addEventListener('click', function initialClick() {
+      console.log("User interaction - initializing audio");
+      bellSound.volume = 0;
+      bellSound.play().then(() => {
+        bellSound.pause();
+        bellSound.currentTime = 0;
+        bellSound.volume = 1;
+        console.log("Audio successfully initialized");
+      }).catch(e => {
+        console.warn("Could not initialize audio:", e);
       });
-    }
-
-    // Test Bell Function
-    function testBell() {
-      startManualBell();
-      setTimeout(stopManualBell, 2000);
-    }
-
-    // Initialize
-    setAutoMode();
-    updateClock();
-  </script>
+      document.removeEventListener('click', initialClick);
+    }, { once: true });
+  }
+});
+</script>
 </body>
-  </html>
+</html>
